@@ -28,7 +28,7 @@ export class Table {
 	 * The number of entities in this table.
 	 */
 	get length(): number {
-		return this.#columns[0].length;
+		return this.#columns[0]?.length ?? 0;
 	}
 
 	/**
@@ -278,4 +278,16 @@ if (import.meta.vitest) {
 			const swappedEntity2 = table.move(2, emptyTable,[]); // removing e2
 			expect(swappedEntity2).toBeUndefined();
 		});
+
+	it('length getter does not throw on empty tables (no columns)', async () => {
+		const emptyTable = Table.createEmpty();
+
+		expect(() => emptyTable.length).not.toThrow();
+		expect(emptyTable.length).toBe(0);
+
+		// ZSTs (Tags) are filtered out, also resulting in no columns
+		class ZST extends Tag {}
+		const zstTable = createTable(ZST);
+		expect(zstTable.length).toBe(0);
+	});
 }
