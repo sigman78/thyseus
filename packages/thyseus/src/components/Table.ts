@@ -55,7 +55,7 @@ export class Table {
 					?.push(component);
 			}
 		}
-		return this.#columns[0]?.[this.#columns[0].length - 1] as
+		return this.#columns[0]?.[row] as
 			| Entity
 			| undefined;
 	}
@@ -250,4 +250,32 @@ if (import.meta.vitest) {
 		const table = createTable(Entity, Vec3, ZST);
 		expect(table.hasColumn(ZST)).toBe(false);
 	});
+
+	it('move() returns the correct swapped entity', async () => {
+			const world = new World();
+			const table = createTable(Entity);
+			const e0 = new Entity(world.entities, 0);
+			const e1 = new Entity(world.entities, 1);
+			const e2 = new Entity(world.entities, 2);
+			const e3 = new Entity(world.entities, 3);
+
+			addToTable(table, e0);
+			addToTable(table, e1);
+			addToTable(table, e2);
+			addToTable(table, e3);
+
+			// [e0, e1, e2, e3]
+			const emptyTable = Table.createEmpty();
+
+			// Move row 1 (e1). `swapRemove` will replace it with the last element (e3).
+			const swappedEntity = table.move(1, emptyTable,[]);
+
+			// Was e2 here.
+			expect(swappedEntity).toBe(e3);
+			expect(table.getColumn(Entity)[1]).toBe(e3);
+
+			// [e0, e3, e2]
+			const swappedEntity2 = table.move(2, emptyTable,[]); // removing e2
+			expect(swappedEntity2).toBeUndefined();
+		});
 }
